@@ -4,7 +4,7 @@
 #  pip install matplotlib
 #  pip install ttkbootstrap
 
-from tkinter import ttk
+from tkinter import ttk, END
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
@@ -15,11 +15,59 @@ import openpyxl
 import xlrd
 from openpyxl import Workbook
 import pathlib
+from matplotlib import pyplot as plt
 
 
-background = "#06283D"
-framebg = "#EDEDED"
-framefg = "#06283D"
+def clear():
+    name_entry.delete(0, END)
+    family_entry.delete(0, END)
+    Postalcode_entry.delete(0, END)
+    work_experience_entry.delete(0, END)
+    salary_entry.delete(0, END)
+
+
+def save():
+    name_val = name_entry.get()
+    family_val = family_entry.get()
+    postal_code_val = Postalcode_entry.get()
+    work_experience_val = work_experience_entry.get()
+    salary_val = salary_entry.get()
+    # write data on excel file:
+    file = openpyxl.load_workbook('lab.xlsx')
+    sheet = file.active
+    sheet.cell(row=sheet.max_row+1, column=1, value=sheet.max_row)
+    sheet.cell(row=sheet.max_row, column=2, value=name_val)
+    sheet.cell(row=sheet.max_row, column=3, value=family_val)
+    sheet.cell(row=sheet.max_row, column=4, value=postal_code_val)
+    sheet.cell(row=sheet.max_row, column=5, value=work_experience_val)
+    sheet.cell(row=sheet.max_row, column=6, value=salary_val)
+    file.save('lab.xlsx')
+    clear()
+
+
+def plot():
+    file = openpyxl.load_workbook('lab.xlsx')
+    sheet = file.active
+    salary = []
+    experience = []
+
+    for index, row in enumerate(sheet.rows):
+        salary.append(sheet.cell(index+1, 6).value)
+        experience.append(sheet.cell(index+1, 5).value)
+
+    salary = salary[1:]
+    experience = experience[1:]
+    salary = [float(s) for s in salary]
+    salary.sort()
+    experience = [float(e) for e in experience]
+    experience.sort()
+    # print(salary)
+    # print(experience)
+
+    plt.plot(experience, salary)
+    plt.show()
+
+
 root = tk.Tk()
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
@@ -88,7 +136,10 @@ button_frame = ttkb.Frame(root)
 button_frame.grid(row=1, column=0, pady=10)
 
 save_button = ttkb.Button(button_frame, text="save",
-                          bootstyle="success outline")
-save_button.grid(row=0, column=0, sticky="ew")
+                          bootstyle="success outline", command=save)
+save_button.grid(row=0, column=0, sticky="ew", padx=10)
+plot_button = ttkb.Button(button_frame, text="plot",
+                          bootstyle="danger", command=plot)
+plot_button.grid(row=0, column=1, sticky="ew", padx=10)
 
 root.mainloop()
