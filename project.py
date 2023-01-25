@@ -8,7 +8,6 @@ from tkinter import ttk, END
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
-from PIL import Image, ImageTk
 import ttkbootstrap as ttkb
 import os
 import openpyxl
@@ -32,6 +31,7 @@ def save():
     postal_code_val = Postalcode_entry.get()
     work_experience_val = work_experience_entry.get()
     salary_val = salary_entry.get()
+    gender_val = radio.get()
     # write data on excel file:
     file = openpyxl.load_workbook('lab.xlsx')
     sheet = file.active
@@ -41,30 +41,47 @@ def save():
     sheet.cell(row=sheet.max_row, column=4, value=postal_code_val)
     sheet.cell(row=sheet.max_row, column=5, value=work_experience_val)
     sheet.cell(row=sheet.max_row, column=6, value=salary_val)
+    sheet.cell(row=sheet.max_row, column=7, value=gender_val)
     file.save('lab.xlsx')
     clear()
 
 
-def plot():
+def plot(type):
+
     file = openpyxl.load_workbook('lab.xlsx')
     sheet = file.active
     salary = []
     experience = []
+    gender = []
 
     for index, row in enumerate(sheet.rows):
         salary.append(sheet.cell(index+1, 6).value)
         experience.append(sheet.cell(index+1, 5).value)
+        gender.append(sheet.cell(index+1, 7).value)
 
     salary = salary[1:]
     experience = experience[1:]
+    gender = gender[1:]
     salary = [float(s) for s in salary]
     salary.sort()
     experience = [float(e) for e in experience]
     experience.sort()
-    # print(salary)
-    # print(experience)
 
-    plt.plot(experience, salary)
+    if type == 'plot':
+        # plotting
+        plt.plot(experience, salary, label="experience")
+        # plt.plot(gender, salary, label="gender")
+    elif type == 'bar':
+        plt.bar(experience, salary, label="salary estimation")
+
+    # plt.style.use('ggplot')
+    plt.xkcd()
+    plt.title('Salary Per Experience')
+    plt.xlabel('Experience')
+    plt.ylabel('Salary')
+    plt.legend()
+    # plt.grid()
+    plt.tight_layout()
     plt.show()
 
 
@@ -93,10 +110,11 @@ else:
     sheet['D1'] = "Postalcode"
     sheet['E1'] = "work experience"
     sheet['F1'] = "salary"
+    sheet['G1'] = "gender"
 
     file.save('lab.xlsx')
 
-input_frame = ttkb.Labelframe(text="input")
+input_frame = ttkb.Frame()
 input_frame.grid(row=0, column=0)
 
 name_label = ttkb.Label(
@@ -129,6 +147,21 @@ salary_label.grid(row=4, column=0, padx=10, pady=10, sticky="w")
 salary_entry = ttkb.Entry(input_frame, width=25)
 salary_entry.grid(row=4, column=1, padx=10, pady=10)
 
+gender_label = ttkb.Label(input_frame, text="Gender",
+                          bootstyle="success", font=("Helvetica", 12, "bold"))
+gender_label.grid(row=5, column=0, padx=10, pady=10, sticky="w")
+radio = tk.StringVar()
+
+radio_frame = ttkb.Frame(input_frame)
+radio_frame.grid(row=5, column=1, padx=10, pady=10)
+
+male_radio = ttkb.Radiobutton(
+    radio_frame, text="Male", variable=radio, value="Male")
+male_radio.grid(row=0, column=0, padx=10, pady=10)
+female_radio = ttkb.Radiobutton(
+    radio_frame, text="Female", variable=radio, value="Female")
+female_radio.grid(row=0, column=1, padx=10, pady=10)
+
 
 # buttons frame
 
@@ -139,7 +172,13 @@ save_button = ttkb.Button(button_frame, text="save",
                           bootstyle="success outline", command=save)
 save_button.grid(row=0, column=0, sticky="ew", padx=10)
 plot_button = ttkb.Button(button_frame, text="plot",
-                          bootstyle="danger", command=plot)
+                          bootstyle="danger", command=lambda: plot('plot'))
 plot_button.grid(row=0, column=1, sticky="ew", padx=10)
+bar_plot_button = ttkb.Button(button_frame, text="barplot",
+                              bootstyle="primary", command=lambda: plot('bar'))
+bar_plot_button.grid(row=0, column=2, sticky="ew", padx=10)
+quit_button = ttkb.Button(button_frame, text="quit",
+                          bootstyle="secondary", command=root.destroy)
+quit_button.grid(row=0, column=3, sticky="ew", padx=10)
 
 root.mainloop()
