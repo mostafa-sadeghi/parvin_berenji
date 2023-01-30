@@ -69,9 +69,11 @@ def plot(type):
 
     if type == 'plot':
         # plotting
+
         plt.plot(experience, salary, label="experience")
         # plt.plot(gender, salary, label="gender")
     elif type == 'bar':
+
         plt.bar(experience, salary, label="salary estimation")
 
     # plt.style.use('ggplot')
